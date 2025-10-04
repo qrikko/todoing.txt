@@ -43,11 +43,10 @@ typedef struct {
     uint8_t entry_count;
 } TodoList;
 
-extern void init();
 
 void todo_create_list(TodoList* list, const char *path);
 void todo_destroy_list(TodoList* list);
 
-void todo_print_entry(const TodoEntry* t);
+void todo_print_entry(const TodoEntry* t, char *buff);
 
 #endif

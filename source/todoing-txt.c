@@ -34,45 +34,81 @@ static void add_metadata(TodoEntry *todo, const char *kv) {
     todo->metadata_count++;
 }
 
-void todo_print_entry(const TodoEntry *t) {
-    printf("Completed: %d\n", t->done);
-    printf("Priority: %c\n", t->priority ? t->priority : '_');
+void todo_print_entry(const TodoEntry *t, char *buff) {
+    sprintf(buff, "[%c]", t->done ? 'x' : ' ');
+    if(t->priority) {
+        sprintf(buff, "%s (%c)", buff, t->priority);
+    }
     if(t->completion_date.year) {
-        printf("Completion date: %04d-%02d-%02d\n",
+        sprintf(buff, "%s %04d-%02d-%02d",
+            buff,
             t->completion_date.year, 
             t->completion_date.month, 
             t->completion_date.day
         );
     }
     if(t->creation_date.year) {
-        printf("Creation date: %04d-%02d-%02d\n",
+        sprintf(buff, "%s %04d-%02d-%02d",
+            buff,
             t->creation_date.year, 
             t->creation_date.month, 
             t->creation_date.day
         );
     }
-    printf("Description: %s\n", t->desc);
+    sprintf(buff, "%s %s", buff, t->desc);
 
-    printf("Project tags: [");
-    for(size_t i=0; i<t->project_tags.count-1; i++) {
-        printf("+%s, ", t->project_tags.items[i]);
+    if(t->project_tags.count > 0) {
+        for(size_t i=0; i<t->project_tags.count; i++) {
+            sprintf(buff, "%s+%s", buff, t->project_tags.items[i]);
+        }
     }
-    printf("+%s]\n", t->project_tags.items[t->project_tags.count-1]);
 
-    printf("Context tags: [");
-    for(size_t i=0; i<t->context_tags.count-1; i++) {
-        printf("@%s, ", t->context_tags.items[i]);
+    if(t->context_tags.count > 0) {
+        for(size_t i=0; i<t->context_tags.count; i++) {
+            sprintf(buff, "%s @%s",buff, t->context_tags.items[i]);
+        }
     }
-    printf("@%s]\n", t->context_tags.items[t->context_tags.count-1]);
 
-    printf("Metadata: {\n");
-    for(size_t i=0; i<t->metadata_count; i++) {
-        printf("\t%s=%s\n", t->metadata[i].key, t->metadata[i].value);
+    if(t->metadata_count > 0) { 
+        for(size_t i=0; i<t->metadata_count; i++) {
+            sprintf(buff, "%s %s=%s", buff, t->metadata[i].key, t->metadata[i].value);
+        }
     }
-    printf("}\n");
 }
-
-
+void todo_destroy_list(TodoList *list) {
+    for(size_t i=0; i<list->entry_count; i++) {
+        {
+            TagList* l = &list->todos[i].project_tags;
+            for(size_t j=0; j<l->count; j++) {
+                free(l->items[j]);
+                l->items[j] = NULL;
+            }
+            free(l->items);
+            l->items = NULL;
+        }
+        {
+            TagList* l = &list->todos[i].context_tags;
+            for(size_t j=0; j<l->count; j++) {
+                free(l->items[j]);
+                l->items[j] = NULL;
+            }
+            free(l->items);
+            l->items = NULL;
+        }
+        {
+            KeyValue* kv = list->todos[i].metadata;
+            for(size_t j=0; j<list->todos[i].metadata_count; j++) {
+                free(kv[j].key);
+                free(kv[j].value);
+            }
+            free(kv);
+            kv = NULL;
+        }
+        free(list->todos[i].desc);
+    }
+    free(list->todos);
+    list = NULL;
+}
 void todo_create_list(TodoList* list, const char *path) {
     FILE *f = fopen(path, "r");
     if(f == NULL) {
@@ -130,9 +166,4 @@ void todo_create_list(TodoList* list, const char *path) {
     if(line) {
         free(line);
     }
-}
-int main(int argc, char **argv) {
-    init();
-
-    return 0;
 }

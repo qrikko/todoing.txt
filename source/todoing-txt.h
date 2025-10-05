@@ -9,6 +9,12 @@ struct TimeBlock {
     time_t duration;
 };
 
+struct TimeStamp {
+    uint16_t h;
+    uint16_t m;
+    uint16_t s;
+};
+
 struct Date {
     uint16_t year;
     uint16_t month;

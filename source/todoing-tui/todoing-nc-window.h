@@ -10,6 +10,8 @@ typedef struct {
     uint16_t left;
     uint16_t width;
     uint16_t height;
+    uint8_t dirty;
+    uint8_t active;
 } WindowData;
 
 void todoing_nc_window_create(WindowData *w);

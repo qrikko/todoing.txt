@@ -3,9 +3,11 @@
 #include <ncurses.h>
 #include "todoing-txt.h"
 #include "todo-window.h"
+#include "timeline-window.h"
 
 typedef struct TodoList TodoList;
 typedef struct TodoWindowData TodoWindowData;
+typedef struct TimelineWindowData TimelineWindowData;
 
 static void init_tui() {
     initscr();
@@ -41,26 +43,63 @@ int main(int argc, char **argv) {
             .height = 10,
             .width = xmax-2,
             .top = 0,
-            .left = 1
+            .left = 1,
+            .active = 1
         },
         .scroll_offset = 0,
         .active_idx = 0,
         .visible_rows = 8
     };
-
     todo_window_create(&todo_window);
-    
+
+    TimelineWindowData timeline_window = { 
+        .window = {
+            .height = ymax-todo_window.window.height,
+            .width = 10,
+            .top = todo_window.window.height,
+            .left = 1,
+            .active = 0
+        },
+        .step = 30 
+    };
+    timeline_window_create(&timeline_window);
+
+    WINDOW* focused = todo_window.window.nc_window;
     uint8_t keep_running = 0x1;
     while (keep_running == 0x1) {
         int cmd = wgetch(stdscr);
 
-        if(todo_window_update(&todo_window, cmd, todo_list.entry_count-1)) {
+        if(todo_window.window.active==1) {
+            todo_window_handle_input(&todo_window, todo_list.entry_count-1, cmd);
+        } else if(timeline_window.window.active==1) {
+            timeline_window_handle_input(&timeline_window, cmd);
+        }
+
+        if(todo_window_update(&todo_window)) {
             todo_window_draw(&todo_window, &todo_list);
+        }
+        if(timeline_window_update(&timeline_window)) {
+            timeline_window_draw(&timeline_window);
         }
         switch(cmd) {
             case 'q': 
             {
                 keep_running = 0x0;
+                break;
+            }
+            case '\t':
+            {
+                if(todo_window.window.active==1) {
+                    todo_window.window.active = 0;
+                    timeline_window.window.active = 1;
+                    focused = timeline_window.window.nc_window;
+                } else if(timeline_window.window.active==1) {
+                    timeline_window.window.active = 0;
+                    todo_window.window.active = 1;
+                    focused = todo_window.window.nc_window;
+                }
+                todo_window.window.dirty = 1;
+                timeline_window.window.dirty = 1;
                 break;
             }
             case KEY_RESIZE: 

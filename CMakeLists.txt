@@ -29,11 +29,12 @@ if(ENABLE_ASAN)
 endif()
 
 add_executable(todoingtxt-tui
-    source/todoing-txt-tui.c
+    source/todoing-tui/todoing-txt-tui.c
+    source/todoing-tui/todo-window.c
+    source/todoing-tui/todoing-nc-window.c
 )
 target_include_directories(todoingtxt-tui PRIVATE
-    3rd-party/miniaudio
-    3rd-party/cjson
+    source
 )
 if(UNIX)
     target_link_libraries(todoingtxt-tui PRIVATE

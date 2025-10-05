@@ -6,6 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct Date Date;
+typedef struct TagList TagList;
+typedef struct TodoEntry TodoEntry;
+typedef struct TodoList TodoList;
+typedef struct KeyValue KeyValue;
+
 static uint8_t is_date(const char *v) {
     return 
         strlen(v)==10 &&

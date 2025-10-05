@@ -4,49 +4,49 @@
 #include <stdint.h>
 #include <time.h>
 
-typedef struct {
+struct TimeBlock {
     time_t start;
     time_t duration;
-} TimeBlock;
+};
 
-typedef struct {
+struct Date {
     uint16_t year;
     uint16_t month;
     uint16_t day;
-} Date;
+};
 
-typedef struct {
+struct TagList {
     char **items;
     size_t count;
-} TagList;
+};
 
-typedef struct {
+struct KeyValue {
     char *key;
     char *value;
-} KeyValue;
+};
 
-typedef struct {
-    Date completion_date;
-    Date creation_date;
-    TagList project_tags;
-    TagList context_tags;
-    KeyValue *metadata;
+struct TodoEntry {
+    struct Date completion_date;
+    struct Date creation_date;
+    struct TagList project_tags;
+    struct TagList context_tags;
+    struct KeyValue *metadata;
     uint8_t metadata_count;
     char *desc;
     char done;
     char priority;
-} TodoEntry;
+};
 
-typedef struct {
+struct TodoList {
     char *file;
-    TodoEntry *todos;
+    struct TodoEntry *todos;
     uint8_t entry_count;
-} TodoList;
+};
 
 
-void todo_create_list(TodoList* list, const char *path);
-void todo_destroy_list(TodoList* list);
+void todo_create_list(struct TodoList* list, const char *path);
+void todo_destroy_list(struct TodoList* list);
 
-void todo_print_entry(const TodoEntry* t, char *buff);
+void todo_print_entry(const struct TodoEntry* t, char *buff);
 
 #endif

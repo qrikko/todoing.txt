@@ -6,8 +6,12 @@
 void timeline_window_draw(struct TimelineWindowData *w) {
     int maxw = getmaxx(w->window.nc_window) - 4;
     mvwprintw(w->window.nc_window, 0, 2, "11:02.22");
+    int y=0;
     for(int i=0; i<10; i++) {
-        mvwprintw(w->window.nc_window, i+1, 2, "%02d:%02d", i+7, 0);
+        //mvwprintw(w->window.nc_window, y, 2, "%02d", i+7);
+        for(int j=0; j<60; j+=w->step,++y) {
+            mvwprintw(w->window.nc_window, y, 2, "%02d:%02d", i+7, j);
+        }
     }
     if(w->window.active) {
         wattron(w->window.nc_window, A_REVERSE);

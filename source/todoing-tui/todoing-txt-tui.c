@@ -4,10 +4,12 @@
 #include "todoing-txt.h"
 #include "todo-window.h"
 #include "timeline-window.h"
+#include "day-window.h"
 
 typedef struct TodoList TodoList;
 typedef struct TodoWindowData TodoWindowData;
 typedef struct TimelineWindowData TimelineWindowData;
+typedef struct DayWindowData DayWindowData;
 
 static void init_tui() {
     initscr();
@@ -24,6 +26,10 @@ static void init_tui() {
 
 int main(int argc, char **argv) {
     init_tui();
+
+    int ymax, xmax;
+    getmaxyx(stdscr, ymax, xmax);
+
     TodoList todo_list;
     {
         char *home = getenv("HOME");
@@ -34,9 +40,6 @@ int main(int argc, char **argv) {
 
         todo_create_list(&todo_list, path);
     }
-
-    int ymax, xmax;
-    getmaxyx(stdscr, ymax, xmax);
 
     TodoWindowData todo_window = {
         .window = {
@@ -50,8 +53,6 @@ int main(int argc, char **argv) {
         .active_idx = 0,
         .visible_rows = 8
     };
-    todo_window_create(&todo_window);
-
     TimelineWindowData timeline_window = { 
         .window = {
             .height = ymax-todo_window.window.height,
@@ -62,7 +63,21 @@ int main(int argc, char **argv) {
         },
         .step = 30 
     };
+    DayWindowData day_window = {
+        .window = {
+            .height = ymax-todo_window.window.height,
+            .width = xmax-timeline_window.window.width-2,
+            .left = timeline_window.window.width+1,
+            .top = todo_window.window.height
+        },
+        .scroll_offset = 0,
+        .active_idx = 0,
+        .visible_rows = 8
+    };
+
+    todo_window_create(&todo_window);
     timeline_window_create(&timeline_window);
+    day_window_create(&day_window);
 
     WINDOW* focused = todo_window.window.nc_window;
     uint8_t keep_running = 0x1;
@@ -73,6 +88,8 @@ int main(int argc, char **argv) {
             todo_window_handle_input(&todo_window, todo_list.entry_count-1, cmd);
         } else if(timeline_window.window.active==1) {
             timeline_window_handle_input(&timeline_window, cmd);
+        } else if(day_window.window.active==1) {
+            day_window_handle_input(&day_window, todo_list.entry_count-1, cmd);
         }
 
         if(todo_window_update(&todo_window)) {
@@ -81,6 +98,10 @@ int main(int argc, char **argv) {
         if(timeline_window_update(&timeline_window)) {
             timeline_window_draw(&timeline_window);
         }
+        if(day_window_update(&day_window)) {
+            day_window_draw(&day_window, &todo_list);
+        }
+
         switch(cmd) {
             case 'q': 
             {

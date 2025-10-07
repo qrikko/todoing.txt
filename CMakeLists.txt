@@ -33,6 +33,7 @@ add_executable(todoingtxt-tui
     source/todoing-tui/todo-window.c
     source/todoing-tui/todoing-nc-window.c
     source/todoing-tui/timeline-window.c
+    source/todoing-tui/day-window.c
 )
 target_include_directories(todoingtxt-tui PRIVATE
     source
